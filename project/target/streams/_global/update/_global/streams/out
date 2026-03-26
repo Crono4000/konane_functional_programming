@@ -1,0 +1,7 @@
+[0m[[0m[0mdebug[0m] [0m[0mnot up to date. inChanged = true, force = false[0m
+[0m[[0m[0mdebug[0m] [0m[0mUpdating ProjectRef(uri("file:/mnt/c/repos/konane_scala/project/"), "konane_scala-build")...[0m
+[0m[[0m[0minfo[0m] [0m[0mUpdating konane_scala-build[0m
+[0m[[0m[0minfo[0m] [0m[0mResolved konane_scala-build dependencies[0m
+[0m[[0m[0minfo[0m] [0m[0mFetching artifacts of konane_scala-build[0m
+[0m[[0m[0minfo[0m] [0m[0mFetched artifacts of konane_scala-build[0m
+[0m[[0m[0mdebug[0m] [0m[0mDone updating ProjectRef(uri("file:/mnt/c/repos/konane_scala/project/"), "konane_scala-build")[0m
