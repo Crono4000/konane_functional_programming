@@ -58,3 +58,8 @@ def showBoard(board:Board, number: Int, size: Int, lstOpenCoords:List[Coord2D]):
         println("")
     showBoard(board, number + 1, size, lstOpenCoords)
 }
+
+def randomMove(lstOpenCoords: List[Coord2D], rand: MyRandom): (Coord2D, MyRandom) = {
+    val random: (Int, MyRandom) = rand.nextInt(lstOpenCoords.size)
+    return (lstOpenCoords(random._1), random._2)
+}
