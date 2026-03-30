@@ -8,6 +8,11 @@ type Board = ParMap[Coord2D, Stone]
 enum Stone:
     case Black, White
 
+implicit def stoneToString(stone: Stone): String = stone match {
+    case Stone.Black => "\u001b[1;30m⚫\u001b[0m"
+    case Stone.White => "\u001b[1;97m⚪\u001b[0m"
+}
+
 def TransformIntCoord2D(number: Int, size: Int): Coord2D = (number % size, number / size)
 
 def getStone(number: Int, size: Int): Stone = {
@@ -65,5 +70,5 @@ def randomMove(lstOpenCoords: List[Coord2D], rand: MyRandom): (Coord2D, MyRandom
 }
 
 def test(): Unit = {
-    BoardTUI.load(generateFullBoard(6))
+    BoardTUI.show(generateFullBoard(6).toList.sortBy { case ((x, y), _) => (x, y) }, List((0,0), (0,1)), 6)
 }
