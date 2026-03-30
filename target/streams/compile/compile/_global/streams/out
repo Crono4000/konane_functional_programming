@@ -1,8 +1,0 @@
-[0m[[0m[31merror[0m] [0m[0m[31m[31m-- [E007] Type Mismatch Error: /home/nado-nas/konane_functional_programming/konane.scala:66:45 [0m[0m[0m
-[0m[[0m[31merror[0m] [0m[0m[31m66 |[0m    [33mreturn[0m (lstOpenCoords(random._1), random._2)[0m
-[0m[[0m[31merror[0m] [0m[0m[31m[31m   |[0m                                      ^^^^^^^^^[0m[0m
-[0m[[0m[31merror[0m] [0m[0m[31m   |[0m                               Found:    (random._2 : scala.util.Random)[0m
-[0m[[0m[31merror[0m] [0m[0m[31m   |[0m                               Required: MyRandom[0m
-[0m[[0m[31merror[0m] [0m[0m[31m   |[0m[0m
-[0m[[0m[31merror[0m] [0m[0m[31m   |[0m longer explanation available when compiling with `-explain`[0m
-[0m[[0m[31merror[0m] [0m[0mone error found[0m

@@ -1,8 +1,0 @@
-[0m[[0m[0mdebug[0m] [0m[0m> Exec(ls, Some(4508f144-f0a7-4ac5-befa-a8032769b458), Some(CommandSource(console0)))[0m
-[0m[[0m[31merror[0m] [0m[0mNot a valid command: ls[0m
-[0m[[0m[31merror[0m] [0m[0mNot a valid project ID: ls[0m
-[0m[[0m[31merror[0m] [0m[0mExpected ':'[0m
-[0m[[0m[31merror[0m] [0m[0mNot a valid key: ls[0m
-[0m[[0m[31merror[0m] [0m[0mls[0m
-[0m[[0m[31merror[0m] [0m[0m  ^[0m
-[0m[[0m[0mdebug[0m] [0m[0m> Exec(shell, None, None)[0m
