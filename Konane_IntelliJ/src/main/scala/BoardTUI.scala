@@ -1,5 +1,5 @@
 object BoardTUI {
-  //This is way better if run in the terminal instead of the IntelliJ CLI
+  //This appears much better when run in a terminal rather than the IntelliJ CLI
 
   private def topBorder(size: Int) = "┏━━" + "┳━━" * (size - 1) + "┓"
 
