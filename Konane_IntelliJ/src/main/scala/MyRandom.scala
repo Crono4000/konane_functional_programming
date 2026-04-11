@@ -1,3 +1,5 @@
+package MyRandom
+
 case class MyRandom(seed: Long) {
   def nextInt(x: Int): (Int, MyRandom) = {
     val newSeed = (seed * 0x5DEECE66DL + 0xBL) &

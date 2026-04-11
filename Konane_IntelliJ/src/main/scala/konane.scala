@@ -1,3 +1,8 @@
+
+package Konane
+
+import MyRandom.MyRandom
+
 import scala.collection.parallel.*
 import scala.collection.parallel.CollectionConverters.*
 
@@ -8,11 +13,6 @@ type Board = ParMap[Coord2D, Stone]
 enum Stone:
     case Black, White
 
-implicit def stoneToString(stone: Stone): String = stone match {
-    case Stone.Black => "\u001b[1;30m⚫\u001b[0m"
-    case Stone.White => "\u001b[1;97m⚪\u001b[0m"
-}
-
 def TransformIntCoord2D(number: Int, size: Int): Coord2D = (number % size, number / size)
 
 def getStone(number: Int, size: Int): Stone = {
@@ -21,12 +21,14 @@ def getStone(number: Int, size: Int): Stone = {
     if (num % 2 == 0) Stone.Black else Stone.White
 }
 
-def generateFullBoard(size: Int): Board = (0 to (size*size - 1)).toList.map(x => (TransformIntCoord2D(x, size), getStone(x, size))).toMap.par
+def initBoard(size: Int): Board = (0 to (size*size - 1)).toList.map(x => (TransformIntCoord2D(x, size), getStone(x, size))).toMap.par
 
-def canPlay(board:Board, player: Stone, coordFrom:Coord2D, coordTo:Coord2D, lstOpenCoords:List[Coord2D]): Boolean = {
+def canPlay(board:Board, player: Stone, coordFrom:Coord2D, coordTo:Coord2D, pb: Coord2D, lstOpenCoords:List[Coord2D]): Boolean = {
     if(board(coordFrom) != player) return false
     if(!lstOpenCoords.contains(coordTo)) return false
+    if(lstOpenCoords.contains(pb)) return false
     if(!board.contains(coordFrom)) return false
+    if(board(pb) == player) return false
 
     val dx: Int = if(coordFrom._1 - coordTo._1 < 0) (coordFrom._1 - coordTo._1) * -1 else (coordFrom._1 - coordTo._1)
     val dy: Int = if(coordFrom._2 - coordTo._2 < 0) (coordFrom._2 - coordTo._2) * -1 else (coordFrom._2 - coordTo._2)
@@ -46,9 +48,10 @@ def getPositionBetween(coordFrom:Coord2D, coordTo:Coord2D): Coord2D = {
 }
 
 def play(board:Board, player: Stone, coordFrom:Coord2D, coordTo:Coord2D, lstOpenCoords:List[Coord2D]): (Option[Board], List[Coord2D]) = {
-    if (!canPlay(board, player, coordFrom, coordTo, lstOpenCoords))
+    val pb: Coord2D = getPositionBetween(coordFrom, coordTo)
+    if (!canPlay(board, player, coordFrom, coordTo, pb, lstOpenCoords))
         return (None, lstOpenCoords)
-    (Some(changeBoardOnPosition(board, coordTo, player)), coordFrom :: (getPositionBetween(coordFrom, coordTo) :: lstOpenCoords.filter(coord => coord._1 != coordTo._1 || coord._2 != coordTo._2)))
+    (Some(changeBoardOnPosition(board, coordTo, player)), coordFrom :: (pb :: lstOpenCoords.filter(coord => coord._1 != coordTo._1 || coord._2 != coordTo._2)))
 }
 
 def showBoard(board:Board, number: Int, size: Int, lstOpenCoords:List[Coord2D]): Unit = {
@@ -69,6 +72,32 @@ def randomMove(lstOpenCoords: List[Coord2D], rand: MyRandom): (Coord2D, MyRandom
     return (lstOpenCoords(random._1), random._2)
 }
 
-def test(): Unit = {
-    BoardTUI.show(generateFullBoard(6).toList.sortBy { case ((x, y), _) => (x, y) }, List((0,0), (0,1)), 6)
+def getStones(entries: List[(Coord2D, Stone)], player: Stone): List[Coord2D] = entries match {
+    case Nil => Nil
+    case (pos, stone) :: rest =>
+        if (stone == player) pos :: getStones(rest, player)
+        else getStones(rest, player)
+}
+
+def playRandomly(board: Board, rand: MyRandom, player: Stone, openCoords: List[Coord2D], f: (List[Coord2D], MyRandom) => (Coord2D, MyRandom)): (Option[Board], MyRandom, List[Coord2D], Option[Coord2D]) = {
+    val playerStones = getStones(board.toList, player)
+    if (playerStones.isEmpty || openCoords.isEmpty) {
+        (None, rand, openCoords, None)
+    } else {
+        val (from, r1) = f(playerStones, rand)
+        val (to, r2) = f(openCoords, r1)
+        play(board, player, from, to, openCoords) match {
+            case (Some(newBoard), newOpen) => (Some(newBoard), r2, newOpen, Some(to))
+            case (None, _) => playRandomly(board, r2, player, openCoords, f)
+        }
+    }
+}
+
+implicit def boardToList(board: Board): List[(Coord2D, Stone)] = {
+  return board.toList.sortBy { case ((x, y), _) => (x, y) }
+}
+
+implicit def stoneToString(stone: Stone): String = stone match {
+    case Stone.Black => "B"
+    case Stone.White => "W"
 }
