@@ -5,7 +5,8 @@ import MyRandom.MyRandom
 def opponent(open: Stone): Stone = open match { case (Stone.White) => Stone.Black case(Stone.Black) => Stone.White} 
 
 object Main {
-
+	
+  //Simulates a maximum of 10 rounds of the game
   def main(args: Array[String]): Unit = {
 
     val size = 6

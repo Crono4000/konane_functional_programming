@@ -54,19 +54,6 @@ def play(board:Board, player: Stone, coordFrom:Coord2D, coordTo:Coord2D, lstOpen
     (Some(changeBoardOnPosition(board, coordTo, player)), coordFrom :: (pb :: lstOpenCoords.filter(coord => coord._1 != coordTo._1 || coord._2 != coordTo._2)))
 }
 
-def showBoard(board:Board, number: Int, size: Int, lstOpenCoords:List[Coord2D]): Unit = {
-    if (number >= size * size)
-        return
-    val vec: Coord2D = TransformIntCoord2D(number, size)
-    if (!lstOpenCoords.contains(vec))
-        print(if(board(vec) == Stone.White) "W" else "B")
-    else
-        print(" ")
-    if (vec._1 + 1 == size)
-        println("")
-    showBoard(board, number + 1, size, lstOpenCoords)
-}
-
 def randomMove(lstOpenCoords: List[Coord2D], rand: MyRandom): (Coord2D, MyRandom) = {
     val random: (Int, MyRandom) = rand.nextInt(lstOpenCoords.size)
     return (lstOpenCoords(random._1), random._2)
