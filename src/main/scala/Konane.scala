@@ -27,6 +27,7 @@ def canPlay(board:Board, player: Stone, coordFrom:Coord2D, coordTo:Coord2D, pb: 
     if(board(coordFrom) != player) return false
     if(!lstOpenCoords.contains(coordTo)) return false
     if(lstOpenCoords.contains(pb)) return false
+    if(lstOpenCoords.contains(coordFrom)) return false
     if(!board.contains(coordFrom)) return false
     if(board(pb) == player) return false
 
@@ -87,4 +88,15 @@ implicit def boardToList(board: Board): List[(Coord2D, Stone)] = {
 implicit def stoneToString(stone: Stone): String = stone match {
     case Stone.Black => "B"
     case Stone.White => "W"
+}
+
+def getAvailableMoves(board: Board, player: Stone, openCoords: List[Coord2D]): List[(coordFrom: Coord2D, coordTo: Coord2D)] = {
+    val playerStones = getStones(board.toList, player)
+    val moves = playerStones.map(x => openCoords.map(y => (x, y))).foldLeft(List.empty[(Coord2D, Coord2D)]) { (acc, elem) => acc ++ elem }
+
+    moves.filter(move => canPlay(board, player, move._1, move._2, getPositionBetween(move._1, move._2), openCoords))
+}
+
+def hasLost(board: Board, player: Stone, openCoords: List[Coord2D]): Boolean = {
+    getAvailableMoves(board, player, openCoords).isEmpty
 }
