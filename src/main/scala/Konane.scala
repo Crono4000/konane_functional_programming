@@ -24,22 +24,35 @@ def getStone(number: Int, size: Int): Stone = {
 def initBoard(size: Int): Board = (0 to (size*size - 1)).toList.map(x => (TransformIntCoord2D(x, size), getStone(x, size))).toMap.par
 
 def canPlay(board:Board, player: Stone, coordFrom:Coord2D, coordTo:Coord2D, pb: Coord2D, lstOpenCoords:List[Coord2D]): Boolean = {
+    val dx: Int = (coordFrom._1 - coordTo._1).abs
+    val dy: Int = (coordFrom._2 - coordTo._2).abs
+
+    //Verifies if coordFrom is valid within the context of the game (in the board and a valid piece)
+    if(!board.contains(coordFrom) || lstOpenCoords.contains(coordFrom)) return false
     if(board(coordFrom) != player) return false
+
+    //Verifies if the destination is open
     if(!lstOpenCoords.contains(coordTo)) return false
-    if(lstOpenCoords.contains(pb)) return false
-    if(lstOpenCoords.contains(coordFrom)) return false
-    if(!board.contains(coordFrom)) return false
-    if(board(pb) == player) return false
 
-    val dx: Int = if(coordFrom._1 - coordTo._1 < 0) (coordFrom._1 - coordTo._1) * -1 else (coordFrom._1 - coordTo._1)
-    val dy: Int = if(coordFrom._2 - coordTo._2 < 0) (coordFrom._2 - coordTo._2) * -1 else (coordFrom._2 - coordTo._2)
-    if (dx + dy != 2 || dx == 1 || dy == 1) return false
+    //Verifies if the movement is valid within the game context (maximum distance that I can move is 2)
+    if(dx + dy > 2)
+        return false
+    else if (dx + dy == 2) {
 
+        //verifies if I am trying to do a diagonal move
+        if (dx == dy) return false
+
+        //verifies if the position that I will try to eat has a valid piece
+        if (lstOpenCoords.contains(pb) || board(pb) == player) return false
+    }
     return true
 }
 
 def changeBoardOnPosition(board: Board, pos: Coord2D, value: Stone): Board = board.map { case (k, v) => if(k._1 == pos._1 && k._2 == pos._2) (k, value) else (k, v) }
 
+/***
+ * @return The position in between 2 positions, or None if they are adjacent
+ */
 def getPositionBetween(coordFrom:Coord2D, coordTo:Coord2D): Coord2D = {
     val dx: Int = (coordFrom._1 - coordTo._1)
     val dy: Int = (coordFrom._2 - coordTo._2)
