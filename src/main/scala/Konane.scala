@@ -23,7 +23,7 @@ def getStone(number: Int, size: Int): Stone = {
 
 def initBoard(size: Int): Board = (0 to (size*size - 1)).toList.map(x => (TransformIntCoord2D(x, size), getStone(x, size))).toMap.par
 
-def canPlay(board:Board, player: Stone, coordFrom:Coord2D, coordTo:Coord2D, pb: Coord2D, lstOpenCoords:List[Coord2D]): Boolean = {
+def canPlay(board:Board, player: Stone, coordFrom: Coord2D, coordTo: Coord2D, pb: Option[Coord2D], lstOpenCoords: List[Coord2D]): Boolean = {
     val dx: Int = (coordFrom._1 - coordTo._1).abs
     val dy: Int = (coordFrom._2 - coordTo._2).abs
 
@@ -39,11 +39,12 @@ def canPlay(board:Board, player: Stone, coordFrom:Coord2D, coordTo:Coord2D, pb: 
         return false
     else if (dx + dy == 2) {
 
-        //verifies if I am trying to do a diagonal move
+        //Verifies if I am trying to do a diagonal move
         if (dx == dy) return false
 
-        //verifies if the position that I will try to eat has a valid piece
-        if (lstOpenCoords.contains(pb) || board(pb) == player) return false
+        //Verifies if the position that I will try to eat has a valid piece
+        // Safe to call pb.get at this point because getPositionBetween always returns Some for moves of distance 2
+        if (lstOpenCoords.contains(pb.get) || board(pb.get) == player) return false
     }
     return true
 }
@@ -51,21 +52,21 @@ def canPlay(board:Board, player: Stone, coordFrom:Coord2D, coordTo:Coord2D, pb: 
 def changeBoardOnPosition(board: Board, pos: Coord2D, value: Stone): Board = board.map { case (k, v) => if(k._1 == pos._1 && k._2 == pos._2) (k, value) else (k, v) }
 
 /***
- * @return The position in between 2 positions, or None if they are adjacent
+ * @return The position in between 2 positions, or None if they are adjacent or at the same coordinate
  */
-def getPositionBetween(coordFrom:Coord2D, coordTo:Coord2D): Coord2D = {
-    val dx: Int = (coordFrom._1 - coordTo._1)
-    val dy: Int = (coordFrom._2 - coordTo._2)
+def getPositionBetween(coordFrom: Coord2D, coordTo: Coord2D): Option[Coord2D]= {
+    val dx: Int = (coordFrom._1 - coordTo._1).abs
+    val dy: Int = (coordFrom._2 - coordTo._2).abs
 
-    if (dx == 0) return (coordFrom._1, coordTo._2 + (dy / 2))
-    else (coordTo._1 + (dx / 2), coordFrom._2)
+    if (dx <= 1 && dy <= 1) return None
+    return Some((dx/2, dy/2))
 }
 
-def play(board:Board, player: Stone, coordFrom:Coord2D, coordTo:Coord2D, lstOpenCoords:List[Coord2D]): (Option[Board], List[Coord2D]) = {
-    val pb: Coord2D = getPositionBetween(coordFrom, coordTo)
+def play(board: Board, player: Stone, coordFrom: Coord2D, coordTo: Coord2D, lstOpenCoords: List[Coord2D]): (Option[Board], List[Coord2D]) = {
+    val pb: Option[Coord2D] = getPositionBetween(coordFrom, coordTo)
     if (!canPlay(board, player, coordFrom, coordTo, pb, lstOpenCoords))
         return (None, lstOpenCoords)
-    (Some(changeBoardOnPosition(board, coordTo, player)), coordFrom :: (pb :: lstOpenCoords.filter(coord => coord._1 != coordTo._1 || coord._2 != coordTo._2)))
+    (Some(changeBoardOnPosition(board, coordTo, player)), coordFrom :: (pb.toList ++ lstOpenCoords.filter(coord => coord._1 != coordTo._1 || coord._2 != coordTo._2)))
 }
 
 def randomMove(lstOpenCoords: List[Coord2D], rand: MyRandom): (Coord2D, MyRandom) = {
