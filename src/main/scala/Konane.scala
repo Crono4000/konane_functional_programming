@@ -34,16 +34,10 @@ def canPlay(board:Board, player: Stone, coordFrom:Coord2D, coordTo:Coord2D, pb: 
     val dx: Int = (coordFrom._1 - coordTo._1).abs
     val dy: Int = (coordFrom._2 - coordTo._2).abs
 
-    // Não permitir movimentos diagonais
     if (dx != 0 && dy != 0) return false
-
-    // Movimentos normais: 1 casa permitido
     if (dx + dy == 1) return true
-
-    // Movimentos de captura: 2 casas só permitido se houver pb
     if (dx + dy == 2 && pb.nonEmpty && !lstOpenCoords.contains(pb.get) && board(pb.get) != player) return true
 
-    // Qualquer outro movimento não permitido
     false
 }
 
@@ -66,8 +60,8 @@ def play(board:Board, player: Stone, coordFrom:Coord2D, coordTo:Coord2D, lstOpen
 }
 */
 def play(board:Board, player: Stone, coordFrom:Coord2D, coordTo:Coord2D, lstOpenCoords:List[Coord2D]): (Option[Board], List[Coord2D]) = {
-    val pb: Option[Coord2D] = getPositionBetween(coordFrom, coordTo)
-    if (!canPlay(board, player, coordFrom, coordTo, pb, lstOpenCoords))
+    val validMoves: List[(from: Coord2D, eats: Option[Coord2D], to: Coord2D)] = getValidMoves(board, player, lstOpenCoords)
+    if (!validMoves.exists { case (from, _, to) => from == coordFrom && to == coordTo })
         return (None, lstOpenCoords)
     (Some(changeBoardOnPosition(board, coordTo, player)), coordFrom :: (pb.toList ++ lstOpenCoords.filter(_ != coordTo)))
 }
@@ -106,15 +100,15 @@ implicit def stoneToString(stone: Stone): String = stone match {
     case Stone.Black => "B"
     case Stone.White => "W"
 }
-
+/*
 def getValidMoves(board: Board, player: Stone, openCoords: List[Coord2D]): List[(Coord2D, Coord2D)] = {
     val playerStones = getStones(board.toList, player)
     val moves = playerStones.map(x => openCoords.map(y => (x, y))).foldLeft(List.empty[(Coord2D, Coord2D)]) { (acc, elem) => acc ++ elem }
 
     moves.filter(move => canPlay(board, player, move._1, move._2, getPositionBetween(move._1, move._2), openCoords))
 }
-
-def test(board: Board, player: Stone, openCoords: List[Coord2D]): List[(Coord2D, Option[Coord2D], Coord2D)] = {
+*/
+def getValidMoves(board: Board, player: Stone, openCoords: List[Coord2D]): List[(from: Coord2D, eats: Option[Coord2D], to: Coord2D)] = {
     val playerStones = getStones(board.toList, player)
     val moves = playerStones.map(x => openCoords.map(y => (x, getPositionBetween(x, y), y))).foldLeft(List.empty[(Coord2D, Option[Coord2D], Coord2D)]) { (acc, elem) => acc ++ elem }
 
