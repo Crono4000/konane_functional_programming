@@ -2,6 +2,7 @@ import javafx.application.Application
 import javafx.fxml.FXMLLoader
 import javafx.scene.layout.*
 import javafx.scene.shape.*
+import javafx.scene.control.*
 import javafx.scene.{Parent, Scene}
 import javafx.stage.Stage
 import Konane.*
@@ -23,10 +24,12 @@ import scala.collection.mutable
 
 class Tabuleiro(var board: Board, var openCoords: List[Coord2D]) {
   var grid: GridPane = new GridPane()
+  grid.setPrefSize(300, 400)
   var mapa: mutable.Map[Coord2D, (Circle, Rectangle)] = mutable.Map()
   var selected: List[Coord2D] = List()
+  var selectPosition: Option[Coord2D] = None
   var turn: Stone = Stone.Black
-  var history: List[(Board, List[Coord2D], Stone)] = List()
+  var history: List[(Board, List[Coord2D], Stone, Option[Coord2D])] = List()
 
   def getCircle(pos: Coord2D): Circle = mapa.getOrElse(pos, (new Circle(7), new Rectangle(8, 9)))._1
 
@@ -43,31 +46,41 @@ class Tabuleiro(var board: Board, var openCoords: List[Coord2D]) {
     }
   }
 
+  def passTurn(e: MouseEvent): Unit = {
+    if (selectPosition.contains(None))
+      return
+    selectPosition = None
+    turn = opponent(turn)
+    init()
+  }
+
   def doMove(coordFrom: Coord2D, coordTo: Coord2D): Unit = {
-    history = (board, openCoords, turn) :: history
+    history = (board, openCoords, turn, selectPosition) :: history
     val result: (Option[Board], List[Coord2D]) = play(board, turn, coordFrom, coordTo, openCoords)
     board = result._1.getOrElse(initBoard(6))
     openCoords = result._2
-    turn = opponent(turn)
-    init()
 
+    //turn = opponent(turn)
+    selectPosition = Some(coordTo)
+    init()
   }
 
-  def undo(): Unit = {
+  def undo(e: MouseEvent): Unit = {
+    val r = history.dropWhile(_._3 != turn)
+    if (r.nonEmpty)
+    {
+      r match {
+        case (oldBoard, oldOpenCoords, _, oldSelected) :: rest =>
+          board = oldBoard
+          openCoords = oldOpenCoords
+          selectPosition = oldSelected
 
-    history match {
-      case _ :: (oldBoard, oldOpenCoords, oldTurn) :: rest =>
+          history = rest
 
-        board = oldBoard
-        openCoords = oldOpenCoords
-        turn = oldTurn
-
-        history = rest
-
-        init()
-
-      case _ =>
-        println("Não há jogadas suficientes para undo")
+          init()
+        case _ =>
+          return
+      }
     }
   }
 
@@ -80,7 +93,8 @@ class Tabuleiro(var board: Board, var openCoords: List[Coord2D]) {
         .map { case ((linha, coluna), stone) =>
           val peca = new Circle(50 * 0.40)
           val quadrado = new Rectangle(50, 50)
-          if (stone == turn) {
+          println("First: " + (stone == turn) + ";Second: " + (selectPosition.contains((linha, coluna))) + ";Third: " + selectPosition.isEmpty)
+          if (stone == turn && (selectPosition.contains((linha, coluna)) || selectPosition.isEmpty)) {
             peca.setOnMouseClicked((e: MouseEvent) => {
               resetSelectedSquares()
               val myMoves = getAvailableMoves(board, stone, openCoords).filter(_.coordFrom == (linha, coluna))
@@ -108,6 +122,12 @@ class Tabuleiro(var board: Board, var openCoords: List[Coord2D]) {
           mapa += ((linha, coluna) -> (peca, quadrado))
           g
         }
+      val undoButton: Button = new Button("Undo")
+      val passButton: Button = new Button("Pass")
+      grid.add(undoButton, 1, 7)
+      undoButton.setOnMouseClicked(undo)
+      grid.add(passButton, 2, 7)
+      passButton.setOnMouseClicked(passTurn)
     }
   }
 
