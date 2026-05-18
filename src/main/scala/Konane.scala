@@ -21,6 +21,8 @@ def getStone(number: Int, size: Int): Stone = {
     if (num % 2 == 0) Stone.Black else Stone.White
 }
 
+def opponent(open: Stone): Stone = open match { case (Stone.White) => Stone.Black case(Stone.Black) => Stone.White}
+
 def initBoard(size: Int): Board = (0 to (size*size - 1)).toList.map(x => (TransformIntCoord2D(x, size), getStone(x, size))).toMap.par
 
 def canPlay(board:Board, player: Stone, coordFrom: Coord2D, coordTo: Coord2D, pb: Option[Coord2D], lstOpenCoords: List[Coord2D]): Boolean = {
@@ -34,8 +36,8 @@ def canPlay(board:Board, player: Stone, coordFrom: Coord2D, coordTo: Coord2D, pb
     //Verifies if the destination is open
     if(!lstOpenCoords.contains(coordTo)) return false
 
-    //Verifies if the movement is valid within the game context (maximum distance that I can move is 2)
-    if(dx + dy > 2)
+    //Verifies if the movement is valid within the game context
+    if(dx + dy != 2)
         return false
     else if (dx + dy == 2) {
 
