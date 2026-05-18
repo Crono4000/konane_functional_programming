@@ -26,6 +26,7 @@ class Tabuleiro(var board: Board, var openCoords: List[Coord2D]) {
   var mapa: mutable.Map[Coord2D, (Circle, Rectangle)] = mutable.Map()
   var selected: List[Coord2D] = List()
   var turn: Stone = Stone.Black
+  var history: List[(Board, List[Coord2D], Stone)] = List()
 
   def getCircle(pos: Coord2D): Circle = mapa.getOrElse(pos, (new Circle(7), new Rectangle(8, 9)))._1
 
@@ -43,13 +44,32 @@ class Tabuleiro(var board: Board, var openCoords: List[Coord2D]) {
   }
 
   def doMove(coordFrom: Coord2D, coordTo: Coord2D): Unit = {
+    history = (board, openCoords, turn) :: history
     val result: (Option[Board], List[Coord2D]) = play(board, turn, coordFrom, coordTo, openCoords)
     board = result._1.getOrElse(initBoard(6))
     openCoords = result._2
     turn = opponent(turn)
     init()
+
   }
 
+  def undo(): Unit = {
+
+    history match {
+      case _ :: (oldBoard, oldOpenCoords, oldTurn) :: rest =>
+
+        board = oldBoard
+        openCoords = oldOpenCoords
+        turn = oldTurn
+
+        history = rest
+
+        init()
+
+      case _ =>
+        println("Não há jogadas suficientes para undo")
+    }
+  }
 
   def init(): Unit = {
       grid.getChildren().clear();
