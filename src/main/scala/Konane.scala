@@ -59,7 +59,7 @@ def getPositionBetween(coordFrom: Coord2D, coordTo: Coord2D): Option[Coord2D]= {
     val dy: Int = (coordFrom._2 - coordTo._2).abs
 
     if (dx <= 1 && dy <= 1) return None
-    return Some((dx/2, dy/2))
+    return Some(((coordFrom._1 + coordTo._1)/2, (coordFrom._2 + coordTo._2)/2))
 }
 
 def play(board: Board, player: Stone, coordFrom: Coord2D, coordTo: Coord2D, lstOpenCoords: List[Coord2D]): (Option[Board], List[Coord2D]) = {
@@ -107,7 +107,7 @@ implicit def stoneToString(stone: Stone): String = stone match {
 def getAvailableMoves(board: Board, player: Stone, openCoords: List[Coord2D]): List[(coordFrom: Coord2D, coordTo: Coord2D)] = {
     val playerStones = getStones(board.toList, player)
     val moves = playerStones.map(x => openCoords.map(y => (x, y))).foldLeft(List.empty[(Coord2D, Coord2D)]) { (acc, elem) => acc ++ elem }
-
+    
     moves.filter(move => canPlay(board, player, move._1, move._2, getPositionBetween(move._1, move._2), openCoords))
 }
 
