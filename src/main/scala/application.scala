@@ -6,6 +6,7 @@ import javafx.scene.control.*
 import javafx.scene.{Parent, Scene}
 import javafx.stage.Stage
 import Konane.*
+import MyRandom.*
 import javafx.application.Application
 
 import scala.collection.mutable.Map
@@ -19,7 +20,10 @@ import javafx.scene.Node
 import BoardTUI.*
 import Konane.*
 import Konane.Stone.Black
+import javafx.animation.PauseTransition
 import javafx.scene.text.Text
+import javafx.util.Duration
+import javafx.event.ActionEvent
 
 import scala.collection.mutable
 
@@ -31,6 +35,10 @@ class Tabuleiro(var board: Board, var openCoords: List[Coord2D]) {
   var selectPosition: Option[Coord2D] = None
   var turn: Stone = Stone.Black
   var history: List[(Board, List[Coord2D], Stone, Option[Coord2D])] = List()
+  var timer: PauseTransition = new PauseTransition(Duration.seconds(10))
+  var randomizer: MyRandom = new MyRandom(System.currentTimeMillis())
+  timer.setOnFinished((e: ActionEvent) => { gameOver()})
+  timer.play()
 
   def getCircle(pos: Coord2D): Circle = mapa.getOrElse(pos, (new Circle(7), new Rectangle(8, 9)))._1
 
@@ -52,6 +60,7 @@ class Tabuleiro(var board: Board, var openCoords: List[Coord2D]) {
       return
     selectPosition = None
     turn = opponent(turn)
+    timer.playFromStart()
     init()
   }
 
@@ -63,6 +72,19 @@ class Tabuleiro(var board: Board, var openCoords: List[Coord2D]) {
 
     //turn = opponent(turn)
     selectPosition = Some(coordTo)
+    init()
+  }
+
+  def doMoveRandom(mouseEvent: MouseEvent): Unit = {
+    if (selectPosition.isDefined)
+      return
+    history = (board, openCoords, turn, selectPosition) :: history
+    val result: (Option[Board], MyRandom, List[Coord2D], Option[Coord2D]) = playRandomly(board, randomizer, turn, openCoords, randomMove)
+    board = result._1.getOrElse(initBoard(6))
+    openCoords = result._3
+    randomizer = result._2
+    selectPosition = result._4
+
     init()
   }
 
@@ -86,6 +108,7 @@ class Tabuleiro(var board: Board, var openCoords: List[Coord2D]) {
   }
 
   def gameOver(): Unit = {
+    grid.getChildren().clear();
     val text: Text = new Text("Game Over, " + opponent(turn) + " Wins!!");
     text.setX(50);
     text.setY(100);
@@ -139,10 +162,13 @@ class Tabuleiro(var board: Board, var openCoords: List[Coord2D]) {
         }
       val undoButton: Button = new Button("Undo")
       val passButton: Button = new Button("Pass")
+      val randButton: Button = new Button("Random")
       grid.add(undoButton, 1, 7)
       undoButton.setOnMouseClicked(undo)
       grid.add(passButton, 2, 7)
       passButton.setOnMouseClicked(passTurn)
+      grid.add(randButton, 3, 7)
+      randButton.setOnMouseClicked(doMoveRandom)
     }
   }
 
