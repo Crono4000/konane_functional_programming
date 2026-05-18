@@ -28,69 +28,68 @@ class Tabuleiro(var board: Board, var openCoords: List[Coord2D]) {
   var turn: Stone = Stone.Black
 
   def getCircle(pos: Coord2D): Circle = mapa.getOrElse(pos, (new Circle(7), new Rectangle(8, 9)))._1
-  def getSquare(pos: Coord2D): Rectangle = {
-    println("Getting " + pos)
-    mapa.getOrElse(pos, (new Circle(7), new Rectangle(8, 9)))._2
+
+  def getSquare(pos: Coord2D): Rectangle = mapa.getOrElse(pos, (new Circle(7), new Rectangle(8, 9)))._2
+
+  def resetSelectedSquares(): Unit = {
+    selected.map {
+      case (c) => {
+        val square = getSquare(c)
+        getSquare(c).setFill(Color.BEIGE)
+        square.setOnMouseClicked((e: MouseEvent) => {})
+        c
+      }
+    }
   }
+
+  def doMove(coordFrom: Coord2D, coordTo: Coord2D): Unit = {
+    val result: (Option[Board], List[Coord2D]) = play(board, turn, coordFrom, coordTo, openCoords)
+    board = result._1.getOrElse(initBoard(6))
+    openCoords = result._2
+    turn = opponent(turn)
+    init()
+  }
+
 
   def init(): Unit = {
-    grid.getChildren().clear();
-    mapa = mutable.Map[Coord2D, (Circle, Rectangle)]()
-    val lboard: List[(Coord2D, Stone)] = board
+      grid.getChildren().clear();
+      mapa = mutable.Map[Coord2D, (Circle, Rectangle)]()
+      val lboard: List[(Coord2D, Stone)] = board
 
-    lboard
-      .map {case ((linha, coluna), stone) =>
-        val peca = new Circle (50 * 0.4)
-        val quadrado = new Rectangle (50, 50)
-        if (stone == turn)
-          {
-        peca.setOnMouseClicked ((e: MouseEvent) => {
-          selected.map {
-            case (k) => {
-              val square = getSquare(k)
-              getSquare(k).setFill(Color.BEIGE)
-              square.setOnMouseClicked((e: MouseEvent) => {})
-              k
-            }
+      lboard
+        .map { case ((linha, coluna), stone) =>
+          val peca = new Circle(50 * 0.40)
+          val quadrado = new Rectangle(50, 50)
+          if (stone == turn) {
+            peca.setOnMouseClicked((e: MouseEvent) => {
+              resetSelectedSquares()
+              val myMoves = getAvailableMoves(board, stone, openCoords).filter(_.coordFrom == (linha, coluna))
+              selected = myMoves.map {
+                case ((coordFrom, coordTo)) => {
+                  val square = getSquare(coordTo)
+                  square.setFill(Color.YELLOW)
+                  square.setOnMouseClicked((e: MouseEvent) => {doMove(coordFrom, coordTo)})
+                  coordTo
+                }
+              }
+            })
           }
-          val moves = getAvailableMoves(board, stone, openCoords)
-          val myMoves = moves.filter (_.coordFrom == (linha, coluna) )
-          selected = myMoves.map {case (k, v) => v}
-          myMoves.map {
-            case ((coordFrom, coordTo)) => {
-              getSquare(coordTo).setFill(Color.YELLOW)
-              (coordFrom, coordTo)
-            }
+          quadrado.setFill(Color.BEIGE)
+          peca.setFill(stone match {
+            case Stone.White => Color.WHITE
+            case Stone.Black => Color.BLACK
+          })
+          (quadrado, peca, linha, coluna)
+        }.foldLeft(grid) { case (g, (quadrado, peca, linha, coluna)) =>
+          g.add(quadrado, coluna, linha)
+          if (!openCoords.contains((linha, coluna))) {
+            g.add(peca, coluna, linha)
           }
-          myMoves.map {
-            case (k, v) => {
-              val square = getSquare(v)
-              square.setOnMouseClicked ((e: MouseEvent) => {
-                  val result: (Option[Board], List[Coord2D]) = play(board, turn, k, v, openCoords)
-                  board = result._1.getOrElse(initBoard(6))
-                  openCoords = result._2
-                  turn = opponent(turn)
-                  init()
-              })
-            }
-          }
-        })}
-        quadrado.setFill (Color.BEIGE)
-        peca.setFill (stone match {
-          case Stone.White => Color.WHITE
-          case Stone.Black => Color.BLACK
-        })
-        (quadrado, peca, linha, coluna)
-  }.foldLeft (grid) {case (g, (quadrado, peca, linha, coluna) ) =>
-        g.add (quadrado, coluna, linha)
-        if (! openCoords.contains ((linha, coluna) ) ) {
-          g.add (peca, coluna, linha)
+          mapa += ((linha, coluna) -> (peca, quadrado))
+          g
         }
-        mapa += ((linha, coluna) -> (peca, quadrado))
-        g
+    }
   }
-  }
-}
 
 class konaneApp extends Application {
 
@@ -102,8 +101,6 @@ class konaneApp extends Application {
   override def start(primaryStage: Stage): Unit = {
     val tab = Tabuleiro(initBoard(6), List((0,0), (0,1)))
     tab.init()
-
-
     val scene = new Scene(tab.grid)
     primaryStage.setScene(scene)
     primaryStage.setTitle("Tabuleiro Funcional em Scala")
