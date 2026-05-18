@@ -19,6 +19,7 @@ import javafx.scene.Node
 import BoardTUI.*
 import Konane.*
 import Konane.Stone.Black
+import javafx.scene.text.Text
 
 import scala.collection.mutable
 
@@ -84,20 +85,34 @@ class Tabuleiro(var board: Board, var openCoords: List[Coord2D]) {
     }
   }
 
+  def gameOver(): Unit = {
+    val text: Text = new Text("Game Over, " + opponent(turn) + " Wins!!");
+    text.setX(50);
+    text.setY(100);
+    text.setFill(Color.RED);
+    text.setStyle("-fx-font-size: 20px; -fx-font-weight: bold;");
+    grid.add(text, 3, 3)
+  }
+
   def init(): Unit = {
       grid.getChildren().clear();
       mapa = mutable.Map[Coord2D, (Circle, Rectangle)]()
       val lboard: List[(Coord2D, Stone)] = board
+      val availableMoves: List[(coordFrom: Coord2D, coordTo: Coord2D)] = getAvailableMoves(board, turn, openCoords)
+
+      if (availableMoves.isEmpty && selectPosition.isEmpty) {
+        gameOver()
+        return
+      }
 
       lboard
         .map { case ((linha, coluna), stone) =>
           val peca = new Circle(50 * 0.40)
           val quadrado = new Rectangle(50, 50)
-          println("First: " + (stone == turn) + ";Second: " + (selectPosition.contains((linha, coluna))) + ";Third: " + selectPosition.isEmpty)
           if (stone == turn && (selectPosition.contains((linha, coluna)) || selectPosition.isEmpty)) {
             peca.setOnMouseClicked((e: MouseEvent) => {
               resetSelectedSquares()
-              val myMoves = getAvailableMoves(board, stone, openCoords).filter(_.coordFrom == (linha, coluna))
+              val myMoves = availableMoves.filter(_.coordFrom == (linha, coluna))
               selected = myMoves.map {
                 case ((coordFrom, coordTo)) => {
                   val square = getSquare(coordTo)
