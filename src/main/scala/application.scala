@@ -47,7 +47,7 @@ class Tabuleiro(var board: Board, var openCoords: List[Coord2D]) {
   }
 
   def passTurn(e: MouseEvent): Unit = {
-    if (selectPosition.contains(None))
+    if (selectPosition.isEmpty)
       return
     selectPosition = None
     turn = opponent(turn)
